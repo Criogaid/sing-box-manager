@@ -199,7 +199,7 @@ SOURCE="$TMP/source"
 mkdir -p "$SOURCE/lib"
 cp "$PROJECT/install.sh" "$SOURCE/install.sh"
 cp "$PROJECT/lib/host.sh" "$SOURCE/lib/host.sh"
-for file in sb VERSION README.md LICENSE lib/documents.sh lib/frontend.sh lib/forms.sh lib/schema.jq lib/nodes.sh lib/links.jq lib/cli.sh; do printf 'synthetic MIT fixture\n' >"$SOURCE/$file"; done
+for file in sb VERSION README.md LICENSE SOURCES.md REQUIREMENTS.md CONTRACTS.md lib/documents.sh lib/frontend.sh lib/forms.sh lib/schema.jq lib/nodes.sh lib/links.jq lib/cli.sh; do printf 'synthetic MIT fixture\n' >"$SOURCE/$file"; done
 cat >"$SOURCE/lib/common.sh" <<'COMMON'
 fail() { printf '%s\n' "$*" >&2; return 1; }
 read_text() { local value; IFS= read -r value || return; printf '%s\n' "$value"; }
@@ -219,6 +219,7 @@ bash "$SOURCE/install.sh" --adopt original.example
 cmp "$SB_MAIN" "$TMP/main-before"
 cmp "$SB_META" "$TMP/meta-before"
 cmp "$SB_PARTS/keep.json" "$TMP/part-before"
+for document in SOURCES.md REQUIREMENTS.md CONTRACTS.md; do cmp "$SOURCE/$document" "$SB_ROOT/manager/$document"; done
 [[ $(cat "$SB_ROOT/runtime.pid") == 4321 ]]
 [[ -e $SB_BIN_DIR/sb && -e $SB_BIN_DIR/sing-box && ! -e $SB_ROOT/manager/old.sh ]]
 if [[ $(uname -s) != MINGW* ]]; then

@@ -148,7 +148,7 @@ host_reinstall() {
 # 固定清单只包含本项目新作，绝不递归复制运行目录或外部脚本。
 _host_copy_source() {
     local source=$1 destination=$2 item
-    local -a artifacts=(sb install.sh VERSION README.md LICENSE lib/common.sh lib/documents.sh lib/frontend.sh lib/forms.sh lib/schema.jq lib/nodes.sh lib/links.jq lib/host.sh lib/cli.sh)
+    local -a artifacts=(sb install.sh VERSION README.md LICENSE SOURCES.md REQUIREMENTS.md CONTRACTS.md lib/common.sh lib/documents.sh lib/frontend.sh lib/forms.sh lib/schema.jq lib/nodes.sh lib/links.jq lib/host.sh lib/cli.sh)
     for item in "${artifacts[@]}"; do
         [[ -f $source/$item && ! -L $source/$item ]] || { fail "缺少独立源码文件：$item"; return 1; }
     done
