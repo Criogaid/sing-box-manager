@@ -73,6 +73,13 @@ if bash "$project/sb" dns del resolver-a >"$sandbox/output" 2>&1; then
 fi
 cmp "$sandbox/dns-before.json" "$SB_ROOT/config.json"
 cli dns settings reverse_mapping on
+cli dns info </dev/null
+cli dns info resolver-a </dev/null
+cp "$SB_ROOT/config.json" "$sandbox/dns-before-extra.json"
+if bash "$project/sb" dns del resolver-b extra </dev/null >"$sandbox/output" 2>&1; then
+    printf 'FAIL: deletion accepted extra arguments\n' >&2; exit 1
+fi
+cmp "$sandbox/dns-before-extra.json" "$SB_ROOT/config.json"
 jq -e '.dns.reverse_mapping==true' "$SB_ROOT/config.json" >/dev/null
 cli info local-http settings
 cli change local-http settings tcp_fast_open off

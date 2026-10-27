@@ -690,19 +690,31 @@ dns_command() {
         op=${ops[idx]}
     fi
     case $op in
+        add|del|info|set) [[ $# -le 1 ]] ;;
+        change) [[ $# -le 1 || $# == 3 ]] ;;
+        settings) [[ $# == 0 || $# == 2 ]] ;;
+        none) [[ $# == 0 ]] ;;
+        *) fail "未知 DNS 操作：$op"; return 1 ;;
+    esac || { fail 'DNS 参数数量不正确，请查看 help'; return 1; }
+    if [[ $op == info && $# == 0 ]]; then
+        data=$(json_temp) || return
+        documents_merge "$data" || return
+        data=$(_node_json '.dns // {}' "$data") || return
+        forms_show "$data"
+        return
+    fi
+    case $op in
         set)
-            [[ $# -le 1 ]] || { fail 'dns set 只接受一个语义地址'; return 1; }
             if (( $# )); then value=$1; else value=$(read_text 'DNS 地址（local、IP 或协议地址）') || return; fi
             _dns_set "$value" ;;
         none)
-            [[ $# == 0 ]] || { fail 'dns none 不接受附加参数'; return 1; }
             # 只取消显式默认解析器，不删除可能被规则或其他配置引用的服务器。
             candidate=$(_node_json 'del(.dns.final)' "$SB_MAIN") || return
             documents_commit "$SB_MAIN" "$candidate" ;;
         settings)
             data=$(_node_json '.dns // {}' "$SB_MAIN") || return
             def=$(forms_definition DNS) || return
-            if (( $# )); then [[ $# == 2 ]] || { fail 'DNS settings 需要字段和值'; return 1; }; forms_set "$def" "$data" "$1" "$2" || return
+            if (( $# )); then forms_set "$def" "$data" "$1" "$2" || return
             else forms_edit "$def" "$data" || return; fi
             candidate=$(_node_json --slurpfile d "$data" '.dns=$d[0]' "$SB_MAIN") || return
             documents_commit "$SB_MAIN" "$candidate" ;;
@@ -735,11 +747,10 @@ dns_command() {
             if [[ $op == change ]]; then
                 type=$(_nodes_jq -r '.type // ""' "$data")
                 def=$(forms_definition DNSServer "$type") || return
-                if (( $# )); then [[ $# == 2 ]] || { fail 'DNS change 需要字段和值'; return 1; }; forms_set "$def" "$data" "$1" "$2" || return
+                if (( $# )); then forms_set "$def" "$data" "$1" "$2" || return
                 else forms_edit "$def" "$data" || return; fi
                 candidate=$(_node_json --argjson i "$index" --slurpfile d "$data" '.dns.servers[$i]=$d[0]' "$file") || return
             else candidate=$(_node_json --argjson i "$index" 'del(.dns.servers[$i])' "$file") || return; fi
             documents_commit "$file" "$candidate" ;;
-        *) fail "未知 DNS 操作：$op"; return 1 ;;
     esac
 }
