@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -o pipefail
+SB_PROJECT=$(cd -- "$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")" && pwd) || exit 1
+for component in common documents frontend forms nodes host cli; do
+    source "$SB_PROJECT/lib/$component.sh" || exit 1
+done
+unset component
+if [[ ${BASH_SOURCE[0]} == "$0" ]]; then
+    umask 077
+    runtime_init || exit 1
+    trap 'rm -rf -- "$SB_WORK"' EXIT
+    manager_main "$@"
+fi
